@@ -13,9 +13,10 @@ let emotionClassifier: any = null;
 export const initEmotionDetector = async () => {
   if (!emotionClassifier) {
     console.log('Loading emotion detection model...');
+    // Using a working emotion recognition model from HuggingFace
     emotionClassifier = await pipeline(
       'image-classification',
-      'Xenova/vit-base-patch16-224-finetuned-emotion'
+      'Xenova/vit-face-expression-recognition'
     );
     console.log('Model loaded successfully');
   }

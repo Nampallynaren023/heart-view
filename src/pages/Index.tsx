@@ -3,22 +3,22 @@ import CameraView from '@/components/CameraView';
 import EmotionDisplay from '@/components/EmotionDisplay';
 import EmotionRecommendations from '@/components/EmotionRecommendations';
 import EmotionHistory from '@/components/EmotionHistory';
+import EmotionTimeline from '@/components/EmotionTimeline';
 import { initEmotionDetector, detectEmotion, EmotionResult, EmotionType } from '@/utils/emotionDetection';
-import { useToast } from '@/hooks/use-toast';
 import { Brain, Sparkles } from 'lucide-react';
 
-const DETECTION_INTERVAL = 2000; // Detect every 2 seconds
+const DETECTION_INTERVAL = 500; // Detect every 0.5 seconds for real-time feel
 const STORAGE_KEY = 'emotion-history';
 
 const Index = () => {
-  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(true); // Auto-start camera
   const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
   const [currentEmotion, setCurrentEmotion] = useState<EmotionType | null>(null);
   const [confidence, setConfidence] = useState(0);
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [isModelReady, setIsModelReady] = useState(false);
   const [emotionHistory, setEmotionHistory] = useState<EmotionResult[]>([]);
-  const { toast } = useToast();
+  const [recentEmotions, setRecentEmotions] = useState<EmotionResult[]>([]);
 
   // Load emotion history from localStorage
   useEffect(() => {
@@ -39,35 +39,22 @@ const Index = () => {
     }
   }, [emotionHistory]);
 
-  // Initialize model when camera is activated
+  // Initialize model when camera is activated - silently without toasts
   useEffect(() => {
     if (isCameraActive && !isModelReady && !isModelLoading) {
       setIsModelLoading(true);
-      toast({
-        title: "Loading AI Model",
-        description: "Preparing emotion detection system...",
-      });
       
       initEmotionDetector()
         .then(() => {
           setIsModelReady(true);
           setIsModelLoading(false);
-          toast({
-            title: "Ready!",
-            description: "Emotion detection is now active.",
-          });
         })
         .catch((error) => {
           console.error('Failed to load model:', error);
           setIsModelLoading(false);
-          toast({
-            title: "Error",
-            description: "Failed to load AI model. Please refresh and try again.",
-            variant: "destructive"
-          });
         });
     }
-  }, [isCameraActive, isModelReady, isModelLoading, toast]);
+  }, [isCameraActive, isModelReady, isModelLoading]);
 
   // Detect emotions at regular intervals
   useEffect(() => {
@@ -81,8 +68,9 @@ const Index = () => {
         setCurrentEmotion(result.emotion);
         setConfidence(result.confidence);
         
-        // Add to history
+        // Add to history and recent emotions
         setEmotionHistory(prev => [...prev, result]);
+        setRecentEmotions(prev => [...prev, result].slice(-30)); // Keep last 30 for timeline
       } catch (error) {
         console.error('Emotion detection error:', error);
       }
@@ -135,10 +123,13 @@ const Index = () => {
             </div>
             
             {isCameraActive && (
-              <EmotionDisplay
-                emotion={currentEmotion}
-                confidence={confidence}
-              />
+              <>
+                <EmotionDisplay
+                  emotion={currentEmotion}
+                  confidence={confidence}
+                />
+                <EmotionTimeline recentEmotions={recentEmotions} />
+              </>
             )}
           </div>
 

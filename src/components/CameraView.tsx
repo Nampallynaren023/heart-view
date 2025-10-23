@@ -46,11 +46,7 @@ const CameraView = ({ onVideoReady, isActive, onToggle }: CameraViewProps) => {
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
-      toast({
-        title: "Camera Access Denied",
-        description: "Please allow camera access to use emotion detection.",
-        variant: "destructive"
-      });
+      // Silent error - no toast popup
       setIsLoading(false);
     }
   };
