@@ -28,7 +28,7 @@ export const detectEmotion = async (imageElement: HTMLVideoElement): Promise<Emo
     await initEmotionDetector();
   }
 
-  const results = await emotionClassifier(imageElement);
+  const results = await emotionClassifier(imageElement, { topk: 3 });
   
   // Map model output to our emotion types
   const topResult = results[0];

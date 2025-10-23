@@ -4,10 +4,12 @@ import EmotionDisplay from '@/components/EmotionDisplay';
 import EmotionRecommendations from '@/components/EmotionRecommendations';
 import EmotionHistory from '@/components/EmotionHistory';
 import EmotionTimeline from '@/components/EmotionTimeline';
+import EmotionMoments from '@/components/EmotionMoments';
 import { initEmotionDetector, detectEmotion, EmotionResult, EmotionType } from '@/utils/emotionDetection';
 import { Brain, Sparkles } from 'lucide-react';
 
-const DETECTION_INTERVAL = 500; // Detect every 0.5 seconds for real-time feel
+const DETECTION_INTERVAL = 300; // Detect every 0.3 seconds for ultra-fast feel
+const CONFIDENCE_THRESHOLD = 0.4; // Only show emotions with >40% confidence
 const STORAGE_KEY = 'emotion-history';
 
 const Index = () => {
@@ -65,12 +67,16 @@ const Index = () => {
     const detectInterval = setInterval(async () => {
       try {
         const result = await detectEmotion(videoElement);
-        setCurrentEmotion(result.emotion);
-        setConfidence(result.confidence);
         
-        // Add to history and recent emotions
-        setEmotionHistory(prev => [...prev, result]);
-        setRecentEmotions(prev => [...prev, result].slice(-30)); // Keep last 30 for timeline
+        // Only update if confidence is above threshold for accuracy
+        if (result.confidence >= CONFIDENCE_THRESHOLD) {
+          setCurrentEmotion(result.emotion);
+          setConfidence(result.confidence);
+          
+          // Add to history and recent emotions
+          setEmotionHistory(prev => [...prev, result]);
+          setRecentEmotions(prev => [...prev, result].slice(-30)); // Keep last 30 for timeline
+        }
       } catch (error) {
         console.error('Emotion detection error:', error);
       }
@@ -136,6 +142,7 @@ const Index = () => {
           {/* Right Column - Insights */}
           <div className="space-y-6">
             <EmotionRecommendations emotion={currentEmotion} />
+            <EmotionMoments recentEmotions={recentEmotions} />
             <EmotionHistory history={emotionHistory} />
           </div>
         </div>

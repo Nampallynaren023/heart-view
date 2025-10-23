@@ -31,7 +31,12 @@ const CameraView = ({ onVideoReady, isActive, onToggle }: CameraViewProps) => {
     try {
       setIsLoading(true);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: 640, height: 480 }
+        video: { 
+          facingMode: 'user', 
+          width: { ideal: 1280 }, 
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 }
+        }
       });
 
       if (videoRef.current) {
